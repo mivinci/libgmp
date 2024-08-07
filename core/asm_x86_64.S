@@ -54,4 +54,4 @@ goinit:
 .globl goexit
 goexit:
   xor  %rdi, %rdi
-  call GMP_exit
+  call _GMP_exit

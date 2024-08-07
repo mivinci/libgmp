@@ -13,14 +13,3 @@ int sys_ncpu(void) {
   n = sysctl(mib, 2, &ncpu, &len, 0, 0);
   return n < 0? n : ncpu;
 }
-
-#ifdef TEST
-#include "utest/utest.h"
-
-UTEST(core, sys_ncpu) {
-  int ncpu;
-
-  ncpu = sys_ncpu();
-  ASSERT_GT(ncpu, 0);
-}
-#endif

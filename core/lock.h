@@ -43,5 +43,6 @@ void Lock_lock(Lock *p) {
 void Lock_unlock(Lock *p) {
   atomic_store(p, UNLOCKED);
 }
+
 #endif /* USE_PTHREAD */
 #endif /* GMP_LOCK_H */

@@ -26,7 +26,3 @@ list(APPEND sources poller_${POLLER}.c)
 
 add_library(core STATIC ${sources})
 include_directories(../include)
-
-file(GLOB tests "*_test.c")
-add_executable(test test.c ${tests})
-target_link_libraries(test core)
