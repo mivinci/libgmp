@@ -53,4 +53,4 @@ goinit:
 .globl goexit
 goexit:
   mov x0, #0
-  bl GMP_exit
+  bl  GMP_exit

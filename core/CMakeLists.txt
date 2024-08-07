@@ -1,7 +1,11 @@
 cmake_minimum_required(VERSION 3.15)
 enable_language(ASM)
+set(C_STANDARD 99)
+
+file(GLOB headers "*.h")
 
 set(sources
+  ${headers}
   sched.c
   timer.c
   asm_${CMAKE_SYSTEM_PROCESSOR}.S
@@ -23,8 +27,6 @@ list(APPEND sources poller_${POLLER}.c)
 add_library(core STATIC ${sources})
 include_directories(../include)
 
-if(DEFINED TEST)
-  add_definitions(-DTEST=${TEST})
-  add_executable(test test.c)
-  target_link_libraries(test core)
-endif()
+file(GLOB tests "*_test.c")
+add_executable(test test.c ${tests})
+target_link_libraries(test core)

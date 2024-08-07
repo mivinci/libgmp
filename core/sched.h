@@ -82,4 +82,6 @@ struct P {
   int gtail;
 };
 
+void Sched_init(int);
+
 #endif

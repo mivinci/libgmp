@@ -13,15 +13,16 @@
 #define panic(...)                                                             \
   do {                                                                         \
     traceback();                                                               \
+    exit(1);                                                                   \
   } while (0)
 
 static Sched sched;
 static __thread G *g;
 
-extern void goinit(Gobuf *);
-extern void gogo(Gobuf *);
-extern int gosave(Gobuf *);
-extern void goexit(void);
+extern void goinit(Gobuf *) __asm__("goinit");
+extern void gogo(Gobuf *) __asm__("gogo");
+extern int gosave(Gobuf *) __asm__("gosave");
+extern void goexit(void) __asm__("goexit");
 static G *gget(P *);
 static void gput(P *, G *, bool);
 static G *globgpop(void);
@@ -251,7 +252,12 @@ void GMP_exit(int status) {
   schedule();
 }
 
-static void ready(P *pp, G *gp) {}
+static void ready(P *pp, G *gp) {
+  for (; gp; gp = gp->next) {
+    gp->state = G_RUNNABLE;
+    gput(pp, gp, false);
+  }
+}
 
 static G *checkstackgrow(G *gp) {
   G *newg;
@@ -266,7 +272,7 @@ static G *checkstackgrow(G *gp) {
   /* Now we do actual stack expansion */
   sizeinuse = gp->stack.ha - gp->buf.sp;
   newsize = size * 2;
-  newg = (G *)malloc(newsize);
+  newg = (G *)malloc(newsize + CTX_MAX + sizeof(G));
   if (!newg)
     panic("GMP(checkstackgrow): out of memory");
   memcpy(newg, gp, sizeof *gp);
@@ -302,20 +308,25 @@ void GMP_yield(void) {
   schedule();
 }
 
-static void traceback() {}
+static void traceback() {
+  /* TODO */
+}
 
-void GMP_init(int flags) {
+void Sched_init(int np) {
   int ncpu;
+
+  if (np < 1)
+    panic("GMP: zero P");
 
   ncpu = sys_ncpu();
   if (ncpu < 0)
-    panic("GMP_init(sys_ncpu)");
+    panic("GMP: sys_ncpu");
 
   Lock_init(&sched.lock);
 
-  sched.allp = (P *)malloc(1 * sizeof(P));
+  sched.allp = (P *)malloc(np * sizeof(P));
   if (sched.allp)
-    panic("GMP(Sched_init): malloc");
+    panic("GMP: malloc");
 
   list_head_init(&sched.allg);
   sched.ncpu = ncpu;
